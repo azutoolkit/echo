@@ -1,23 +1,9 @@
 module Echo
-  class Producer
-    @name : Symbol
-
-    def self.[](name : Symbol)
-      new(name)
-    end
-
-    def initialize(@name)
-    end
-
-    def register(event : Event) 
-      events[event.class]
-    end
-
-    def subscribe(consumer : Consumer)
-      consumers << consumer
-    end
-
-    def publish(event, **payload)
+  module Producer(T)
+    macro included
+      def publish(event : T)
+        Echo.streams[T.to_s].publish(event)
+      end
     end
   end
 end
