@@ -1,18 +1,23 @@
 
 module Echo
   class Memory(T) < Stream
-    def initialize
-      @channel = Channel(T).new
-      Echo.streams[T.to_s]=self
-    end
+    include Enumerable(Consumer(T))
+    
+    getter consumers = Set(Echo::Consumer(T)).new
 
-    def subscribe(&block : T -> _)
-      p T.to_s
+    def subscribe(consumer : Consumer(T))
+      @consumers << consumer
     end
 
     def publish(event : T)
-      @channel.send event
+      @consumers.each do |consumer|
+        consumer.on event
+      end
       event
+    end
+
+    def each
+      @consumers.each { |consumer| yield consumer } 
     end
   end
 end

@@ -1,49 +1,44 @@
 require "./spec_helper"
 
-struct HelloEvent
-  include Echo::Event
-  getter name = "John Carter!"
-end
-
-struct HelloWorld
+class World
   include Echo::Event
   getter name = "World"
 end
 
-class MyProducer
-  include Echo::Producer(HelloEvent)
-  include Echo::Producer(HelloEvent)
+class Name
+  include Echo::Event
+  getter name = "John Carter"
+end
 
-  def call
-    event = HelloEvent.new
-    world = HelloWorld.new
-    publish(event2)
-    publish(world)
+class TestProducer
+  include Echo::Producer(World | Name)
+end
+
+class TestConsumer
+  include Echo::Consumer(World | Name)
+
+  def on(event : World | Name)
+    p "#{event.name}"
   end
 end
 
-class MyConsumer
-  include Echo::Consumer(HelloEvent)
-  include Echo::Consumer(HelloWorld)
-  
-  def on(event : HelloEvent)
-    p "Two"
-    p "Hello, #{event.name}"
-  end
+class TestConsumer2
+  include Echo::Consumer(Name | World)
 
-  def on(event : HelloWorld)
-    p "Two"
-    p "Hello, #{event.name}"
+  def on(event : World | Name)
+    p "#{event.name}"
   end
 end
 
 describe Echo do
-  producer = MyProducer.new
-  
-  it "works" do
-    event = HelloEvent.new
-    world = HelloWorld.new
+  producer = TestProducer.new
 
-    producer.publish(event).should eq "Hello, John Carter!"
+  it "subscribes a consumer for event" do
+    producer.subscribe TestConsumer.new, TestConsumer2.new
+    producer.consumers.size.should eq 2
+  end
+
+  it "subscribes a consumer for event" do
+    producer.publish World.new, Name.new
   end
 end
