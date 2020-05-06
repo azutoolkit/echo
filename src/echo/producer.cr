@@ -1,18 +1,27 @@
 module Echo
   module Producer(T)
+    EVENTS =  [] of String
     macro included
-      {% name = T.stringify.gsub(/::|\s\|\s|\)|\(/, "_").underscore %}
-      getter stream = Echo::Memory({{T}}).new
+      {% EVENTS << T.stringify %}
     end
+
+    macro finished
+    {% name = EVENTS.join("_").stringify.gsub(/::|\s\|\s|\)|\(/, "_").underscore %}
+    {% consumers = EVENTS.map { |e| "Echo::Consumer(#{e.id})" }%}
+
+    getter stream = Echo::Redis({{EVENTS.join(" | ").id}}, {{consumers.join(" | ").id}}).new(name: {{name.id}})
     
     forward_missing_to stream
-
-    def subscribe(*consumers : Consumer(T))
-      consumers.each { |c| stream.subscribe c }
+    
+    def subscribe(*consumers : {{consumers.join(" | ").id}})
+      consumers.each do |c| 
+        stream.subscribe c
+      end
     end
 
-    def publish(*events : T)
+    def publish(*events : {{EVENTS.join(" | ").id}})
       events.each { |e| stream.publish e }
+    end
     end
   end
 end

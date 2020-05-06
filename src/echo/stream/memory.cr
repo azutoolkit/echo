@@ -1,23 +1,30 @@
-
 module Echo
-  class Memory(T) < Stream
-    include Enumerable(Consumer(T))
-    
-    getter consumers = Set(Echo::Consumer(T)).new
+  class Memory(E, C)
+    include Stream(E, C)
+    getter consumers = Set(C).new
 
-    def subscribe(consumer : Consumer(T))
+    @channel = Channel(E).new
+
+    def initialize(@name : String)
+      spawn consume
+    end
+
+    def subscribe(consumer : C)
       @consumers << consumer
     end
 
-    def publish(event : T)
-      @consumers.each do |consumer|
-        consumer.on event
-      end
+    def publish(event : E)
+      spawn { @channel.send event }
       event
     end
 
-    def each
-      @consumers.each { |consumer| yield consumer } 
+    def unsubscribe(consumer : C)
+      consumers.delete consumer
+    end
+
+    private def consume
+      event = @channel.receive
+      @consumers.each { |c| c.on event }
     end
   end
 end

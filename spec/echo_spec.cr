@@ -1,44 +1,46 @@
 require "./spec_helper"
 
-class World
+struct World
   include Echo::Event
-  getter name = "World"
-end
+  getter name : String = ""
 
-class Name
-  include Echo::Event
-  getter name = "John Carter"
-end
-
-class TestProducer
-  include Echo::Producer(World | Name)
-end
-
-class TestConsumer
-  include Echo::Consumer(World | Name)
-
-  def on(event : World | Name)
-    p "#{event.name}"
+  def initialize(@name)
   end
 end
 
-class TestConsumer2
-  include Echo::Consumer(Name | World)
+struct Marco
+  include Echo::Event
+  getter name = "Marco"
+end
 
-  def on(event : World | Name)
-    p "#{event.name}"
+class WorldProducer
+  include Echo::Producer(World)
+  include Echo::Producer(Marco)
+end
+
+class WorldConsumer
+  include Echo::Consumer(World)
+  include Echo::Consumer(Marco)
+
+  getter count : Int32 = 0
+
+  def on(event : World | Marco)
+    @count += 1
+    p "Name: #{event.name}, count: #{count}"
   end
 end
 
 describe Echo do
-  producer = TestProducer.new
-
+  world = WorldProducer.new
+  consumer = WorldConsumer.new
+  world.subscribe consumer
+  event = World.new "John Doe"
+  
   it "subscribes a consumer for event" do
-    producer.subscribe TestConsumer.new, TestConsumer2.new
-    producer.consumers.size.should eq 2
-  end
-
-  it "subscribes a consumer for event" do
-    producer.publish World.new, Name.new
+    consumer.count.should eq 0
+    world.publish event
+    
+    sleep 1.second # wait since specs runs faster
+    consumer.count.should eq 1
   end
 end
