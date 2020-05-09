@@ -1,5 +1,5 @@
 require "./echo/event"
-require "./echo/producer"
+require "./echo/producers/**"
 require "./echo/consumer"
 require "./echo/stream"
 

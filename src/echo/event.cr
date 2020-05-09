@@ -4,15 +4,12 @@ require "json"
 require "suzuri/json_serializable"
 
 module Echo
-  module Event 
+  module Event
     macro included
       include JSON::Serializable
     
-      @event_id : String = UUID.random.to_s
-      @event_time : Time = Time.utc
-
-      def initialize
-      end
+      getter event_id : String = UUID.random.to_s
+      getter event_time : Time = Time.utc
     end
   end
 end

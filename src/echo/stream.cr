@@ -1,6 +1,4 @@
-# Streams provides an “append only” data structure that appears similar to logs.
-
-module Echo 
+module Echo
   module Stream(E, C)
     abstract def subscribe(consumer : C)
     abstract def unsubscribe(consumer : C)
@@ -8,4 +6,4 @@ module Echo
   end
 end
 
-require "./stream/**"
+require "./streams/**"

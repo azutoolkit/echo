@@ -13,12 +13,12 @@ struct Marco
   getter name = "Marco"
 end
 
-class WorldProducer
-  include Echo::Producer(World)
-  include Echo::Producer(Marco)
+class MemWorldProducer
+  include Echo::Producer::Memory(World)
+  include Echo::Producer::Memory(Marco)
 end
 
-class WorldConsumer
+class MemWorldConsumer
   include Echo::Consumer(World)
   include Echo::Consumer(Marco)
 
@@ -26,21 +26,23 @@ class WorldConsumer
 
   def on(event : World | Marco)
     @count += 1
-    p "Name: #{event.name}, count: #{count}"
+    p "id: #{event.event_id}, Name: #{event.name}, count: #{count}"
   end
 end
 
 describe Echo do
-  world = WorldProducer.new
-  consumer = WorldConsumer.new
+  world = MemWorldProducer.new
+  consumer = MemWorldConsumer.new
   world.subscribe consumer
   event = World.new "John Doe"
-  
+
   it "subscribes a consumer for event" do
     consumer.count.should eq 0
     world.publish event
+    world.publish  World.new("Eva Lily")
     
-    sleep 1.second # wait since specs runs faster
-    consumer.count.should eq 1
+    sleep 0.millisecond
+
+    consumer.count.should eq 2
   end
 end

@@ -6,7 +6,6 @@ module Echo
     @channel = Channel(E).new
 
     def initialize(@name : String)
-      spawn consume
     end
 
     def subscribe(consumer : C)
@@ -14,7 +13,7 @@ module Echo
     end
 
     def publish(event : E)
-      spawn { @channel.send event }
+      spawn consume(event, @consumers)
       event
     end
 
@@ -22,9 +21,8 @@ module Echo
       consumers.delete consumer
     end
 
-    private def consume
-      event = @channel.receive
-      @consumers.each { |c| c.on event }
+    private def consume(event : E, consumers : Set(C))
+      consumers.each { |c| c.on event }
     end
   end
 end
