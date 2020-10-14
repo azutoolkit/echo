@@ -1,54 +1,41 @@
 require "./spec_helper"
 
 struct World
-  include Echo::Event
-  getter name : String = ""
-
-  def initialize(@name)
+  include Echo::Message
+  def initialize(@name : String)
   end
 end
 
-struct Marco
-  include Echo::Event
-  getter name = "Marco"
+struct WorldPublisher
+  include Echo::Producer(World, Echo::Redis)
 end
 
-class WorldProducer
-  include Echo::Producer::Redis(World)
-  include Echo::Producer::Redis(Marco)
-end
-
+# Class will maintain state
+# Struct will loose state
 class WorldConsumer
-  include Echo::Consumer(World)
-  include Echo::Consumer(Marco)
-
+  include Echo::Consumer(World, Echo::Redis)
   getter count : Int32 = 0
 
-  def on(event : World | Marco)
+  def on(message : World)
     @count += 1
-    p "id: #{event.event_id}, Name: #{event.name}, count: #{count}"
   end
 end
 
-
 describe Echo do
-  world = WorldProducer.new
   consumer = WorldConsumer.new
-  world.subscribe consumer
-  event = World.new "John Doe"
+  producer = WorldPublisher.new
 
   before_each do
-    MiniRedis.new.send("DEL", "world_marco")
-    sleep 2.second
+    MiniRedis.new.send("DEL", "world")
   end
 
   it "subscribes a consumer for event" do
-    world.from="1589032117141"
-    world.publish event
-    world.publish World.new("Eva Lily")
+    producer.publish name: "1"
+    producer.publish "2"
+    producer.publish "3"
 
-    sleep 1.millisecond
+    sleep 1
 
-    consumer.count.should eq 2
+    consumer.count.should eq 3
   end
 end

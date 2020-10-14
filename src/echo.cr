@@ -1,7 +1,4 @@
-require "./echo/event"
-require "./echo/producers/**"
-require "./echo/consumer"
-require "./echo/stream"
+require "./echo/**"
 
 module Echo
   VERSION = "0.1.0"
