@@ -22,7 +22,7 @@ module Echo
     ERROR_PARSING_XREAD = "Error parsing XREAD"
     REGUALR_EXP = /\d{13}-\d{1}/
     FROM = (Time.utc.to_unix_ms - 1).to_s
-    @redis = MiniRedis.new
+    @redis : MiniRedis = REDIS
 
     def publish(message : Message)
       send_msg Base64.urlsafe_encode(message.to_json)
