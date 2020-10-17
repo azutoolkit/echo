@@ -18,6 +18,7 @@ class WorldConsumer
 
   def on(message : World)
     @count += 1
+    p "Count #{@count}"
   end
 end
 
@@ -26,7 +27,7 @@ describe Echo do
   producer = WorldPublisher.new
 
   before_each do
-    MiniRedis.new.send("DEL", "world")
+    Echo::REDIS.command(["DEL", "world"])
   end
 
   it "subscribes a consumer for event" do
@@ -35,7 +36,7 @@ describe Echo do
     producer.publish "3"
 
     sleep 1
-
+    
     consumer.count.should eq 3
   end
 end

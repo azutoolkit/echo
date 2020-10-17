@@ -9,6 +9,6 @@ crystal: 0.34.0
 license: MIT
 
 dependencies:
-  mini_redis:
-    github: vladfaust/mini_redis
-    version: ~> 0.2.0
+  redis:
+    github: stefanwille/crystal-redis
+    version: ~> 2.6.0

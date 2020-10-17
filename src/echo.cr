@@ -1,3 +1,4 @@
+require "redis"
 require "./echo/**"
 
 module Echo

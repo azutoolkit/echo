@@ -1,5 +1,3 @@
-require "mini_redis"
-
 module Echo
   # The Stream is a new data type introduced with Redis 5.0, which models a log data 
   # structure in a more abstract way, however the essence of the log is still intact: 
@@ -22,10 +20,10 @@ module Echo
     ERROR_PARSING_XREAD = "Error parsing XREAD"
     REGUALR_EXP = /\d{13}-\d{1}/
     FROM = (Time.utc.to_unix_ms - 1).to_s
-    @redis : MiniRedis = REDIS
 
     def publish(message : Message)
-      send_msg Base64.urlsafe_encode(message.to_json)
+      encoded = Base64.urlsafe_encode(message.to_json)
+      send_msg encoded
     end
     
     def subscribe(consumer : Consumer)
@@ -34,38 +32,27 @@ module Echo
         consumer.last_message_id = message_id
         consumer.on event
       end
-      p consumer.count
       subscribe consumer
     end
 
     private def send_msg(payload)
-      @redis.send(CMD::XADD.to_s, Message.to_s, ID, MESSAGE_KEY, payload)
+      cmd = [CMD::XADD.to_s, Message.to_s, ID, MESSAGE_KEY, payload]
+      REDIS.string_command(cmd)
     end
 
     private def last_message(consumer)
-      @redis.send(
-        CMD::XREAD.to_s, 
-        CMD::BLOCK.to_s, TIMEOUT, 
-        CMD::STREAMS.to_s, Message.to_s, consumer.last_message_id )
-        .raw.as(Array).first.raw.as(Array)
+      cmd = [CMD::XREAD.to_s, CMD::BLOCK.to_s, TIMEOUT, CMD::STREAMS.to_s, Message.to_s, consumer.last_message_id]
+      REDIS.string_array_command(cmd).as(Array).first.as(Array)
     end
 
     private def xread_parser(payload, keys = Array(String).new, values = Array(Message).new)
-      payload.each do |stream|
-        case raw = stream.raw
-        when Array(MiniRedis::Value) 
-          xread_parser(raw, keys, values)
-        when Bytes 
-          val = String.new(raw)
-          next if val.starts_with?(MESSAGE_KEY) || val.starts_with?(Message.to_s)
-          case val
-          when .starts_with? REGUALR_EXP
-            keys << val
-          else
-            values << (Message).from_json(Base64.decode_string(val))  
-          end
-        else
-          raise ERROR_PARSING_XREAD
+      payload.each do |part|
+        return xread_parser(part.as(Array), keys, values) if part.is_a? Array(::Redis::RedisValue)
+        case val = part.to_s
+        when .starts_with?(MESSAGE_KEY) then next
+        when .starts_with?(Message.to_s) then next
+        when .starts_with? REGUALR_EXP then keys << val
+        else values << (Message).from_json(Base64.decode_string(val))  
         end
       end 
       Hash.zip(keys, values)
