@@ -6,8 +6,8 @@ module Echo
       @stream = Stream(Message).new
     end
 
-    def initialize
-      spawn @stream.subscribe(self)
+    def subscribe
+      @stream.subscribe(self)
     end
 
     abstract def on(message : Message)

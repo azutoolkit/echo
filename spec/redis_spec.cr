@@ -24,10 +24,11 @@ end
 
 describe Echo do
   consumer = WorldConsumer.new
+  consumer.last_message_id = "1602958178258-0"
   producer = WorldPublisher.new
 
   before_each do
-    Echo::REDIS.command(["DEL", "world"])
+    Echo::REDIS.command(["DEL", World.to_s])
   end
 
   it "subscribes a consumer for event" do
@@ -35,8 +36,8 @@ describe Echo do
     producer.publish "2"
     producer.publish "3"
 
-    sleep 1
-    
+    spawn consumer.subscribe
+    sleep 1.seconds
     consumer.count.should eq 3
   end
 end
