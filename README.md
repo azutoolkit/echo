@@ -1,4 +1,7 @@
-# ECHO Pub/Sub Framework
+# ECHO 
+
+
+#### Pub/Sub Framework
 
 **Echo** is a messaging framework built in Crystal Language, that applies the Pub/Sub pattern with asynchronous messaging service. **Echo** provides instant event notifications for distributed applications, especially those that are decoupled into smaller, independent building blocks.
 
