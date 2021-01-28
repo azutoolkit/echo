@@ -45,7 +45,7 @@ A producer application creates and sends events to a stream. Consumer applicatio
    ```yaml
    dependencies:
      echo:
-       github: eliasjpr/echo
+       github: azutoolkit/echo
    ```
 
 2. Run `shards install`
