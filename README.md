@@ -1,4 +1,7 @@
-# ECHO Pub/Sub Framework
+# ECHO 
+
+
+#### Pub/Sub Framework
 
 **Echo** is a messaging framework built in Crystal Language, that applies the Pub/Sub pattern with asynchronous messaging service. **Echo** provides instant event notifications for distributed applications, especially those that are decoupled into smaller, independent building blocks.
 
@@ -45,7 +48,7 @@ A producer application creates and sends events to a stream. Consumer applicatio
    ```yaml
    dependencies:
      echo:
-       github: eliasjpr/echo
+       github: azutoolkit/echo
    ```
 
 2. Run `shards install`
